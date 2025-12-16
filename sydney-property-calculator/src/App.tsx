@@ -1,4 +1,4 @@
-import { Building2, RefreshCw } from 'lucide-react';
+import { Building2, RefreshCw, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PropertyForm } from '@/components/PropertyForm';
@@ -9,16 +9,18 @@ import { StampDutyRecoveryCard } from '@/components/StampDutyRecoveryCard';
 import { FiveYearOutlookCard } from '@/components/FiveYearOutlookCard';
 import { SummaryExport } from '@/components/SummaryExport';
 import { usePropertyStore } from '@/hooks/usePropertyStore';
+import { useTheme } from '@/hooks/useTheme';
 import { useState } from 'react';
 
 function App() {
   const reset = usePropertyStore((state) => state.reset);
+  const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('repayments');
 
   return (
-    <div className="min-h-screen pb-12">
+    <div className="min-h-screen pb-12 bg-background text-foreground">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
+      <header className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -26,18 +28,39 @@ function App() {
                 <Building2 className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-slate-800">
+                <h1 className="text-xl font-bold text-foreground">
                   Sydney Property Calculator
                 </h1>
-                <p className="text-xs text-slate-500 hidden sm:block">
+                <p className="text-xs text-muted-foreground hidden sm:block">
                   NSW Mortgage & Investment Analysis
                 </p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={reset}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Reset
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleTheme}
+                className="gap-2"
+                title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              >
+                {theme === 'light' ? (
+                  <>
+                    <Moon className="w-4 h-4" />
+                    <span className="hidden sm:inline">Dark</span>
+                  </>
+                ) : (
+                  <>
+                    <Sun className="w-4 h-4" />
+                    <span className="hidden sm:inline">Light</span>
+                  </>
+                )}
+              </Button>
+              <Button variant="outline" size="sm" onClick={reset}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Reset</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -83,9 +106,9 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-slate-200 py-3">
+      <footer className="fixed bottom-0 left-0 right-0 bg-card/90 backdrop-blur-sm border-t border-border py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-xs text-slate-500">
+          <p className="text-center text-xs text-muted-foreground">
             ⚠️ This calculator is for educational purposes only. Always consult financial professionals for investment decisions.
           </p>
         </div>

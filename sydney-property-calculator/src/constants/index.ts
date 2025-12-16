@@ -21,7 +21,7 @@ export const BUYING_COSTS = {
 
 // Default Values
 export const DEFAULT_VALUES = {
-  propertyPrice: 800000,
+  propertyPrice: 1800000,
   availableFunds: 1170000,
   offsetAmount: 60000,
   depositAmount: 0, // 0 means auto-calculate
