@@ -1,6 +1,6 @@
-import type { StampDutyRecovery, WealthProjection, RateScenario } from '@/types';
+import type { StampDutyRecovery, FiveYearProjection } from '@/types';
 import { calculateBaseStampDuty } from './stampDuty';
-import { calculateMonthlyRepayment, calculateRemainingBalance, calculateTotalInterest } from './mortgage';
+import { calculateRemainingBalance } from './mortgage';
 
 /**
  * Calculate how long to recover stamp duty through property appreciation
@@ -41,61 +41,101 @@ export function calculateStampDutyRecovery(
 }
 
 /**
- * Calculate interest rate scenarios
+ * Calculate 5-year wealth projection
+ * Total Invested = Upfront costs (available funds) + All repayments made
+ * Net Position = Equity - Total Invested
  */
-export function calculateRateScenarios(
+export function calculateFiveYearProjection(
+  propertyPrice: number,
   loanAmount: number,
-  currentRate: number,
+  availableFunds: number,
+  interestRate: number,
   loanTermYears: number,
-  rateChanges: number[]
-): RateScenario[] {
-  const baseMonthly = calculateMonthlyRepayment(loanAmount, currentRate, loanTermYears);
-  const baseTotalInterest = calculateTotalInterest(loanAmount, baseMonthly, loanTermYears);
+  monthlyRepayment: number,
+  growthRate: number,
+  offsetBalance: number = 0
+): FiveYearProjection {
+  const years = 5;
   
-  return rateChanges.map(change => {
-    const newRate = currentRate + change;
-    const monthlyRepayment = calculateMonthlyRepayment(loanAmount, newRate, loanTermYears);
-    const totalInterest = calculateTotalInterest(loanAmount, monthlyRepayment, loanTermYears);
-    
-    return {
-      rate: newRate,
-      rateChange: change,
-      monthlyRepayment,
-      monthlyDifference: monthlyRepayment - baseMonthly,
-      totalInterest,
-    };
-  });
+  // Property value after 5 years
+  const propertyValue = Math.round(propertyPrice * Math.pow(1 + growthRate, years));
+  
+  // Remaining loan after 5 years
+  let remainingLoan = 0;
+  if (loanAmount > 0) {
+    remainingLoan = Math.round(
+      calculateRemainingBalance(loanAmount, interestRate, loanTermYears, years, offsetBalance)
+    );
+  } else {
+    // If loan was negative, it stays negative (excess funds)
+    remainingLoan = loanAmount;
+  }
+  
+  // Equity = Property Value - Remaining Loan
+  const equity = propertyValue - remainingLoan;
+  
+  // Total repayments made over 5 years
+  const totalRepayments = monthlyRepayment * 12 * years;
+  
+  // Interest paid over 5 years (approximate)
+  const interestPaid = Math.round(totalRepayments - (loanAmount > 0 ? loanAmount - remainingLoan : 0));
+  
+  // Total Invested = Upfront (available funds) + All repayments
+  const totalInvested = availableFunds + totalRepayments;
+  
+  // Net Wealth Position = Equity - Total Invested
+  const netWealthPosition = equity - totalInvested;
+  
+  // Return percentage
+  const returnPercentage = totalInvested > 0 ? (netWealthPosition / totalInvested) * 100 : 0;
+  
+  return {
+    propertyValue,
+    remainingLoan,
+    equity,
+    interestPaid: Math.max(0, interestPaid),
+    totalInvested,
+    netWealthPosition,
+    returnPercentage,
+  };
 }
 
 /**
- * Calculate wealth projection over time
+ * Calculate interest paid over 5 years with variable rates
+ * For scenarios like "3% for 2 years, then 5% for 3 years"
  */
-export function calculateWealthProjection(
-  propertyPrice: number,
+export function calculateVariableRateInterest(
   loanAmount: number,
-  interestRate: number,
   loanTermYears: number,
-  appreciationRate: number,
-  years: number = 10
-): WealthProjection[] {
-  const projections: WealthProjection[] = [];
-  const monthlyRepayment = calculateMonthlyRepayment(loanAmount, interestRate, loanTermYears);
+  rates: Array<{ years: number; rate: number }>,
+  offsetBalance: number = 0
+): number {
+  if (loanAmount <= 0) return 0;
   
-  for (let year = 0; year <= years; year++) {
-    const propertyValue = propertyPrice * Math.pow(1 + appreciationRate / 100, year);
-    const loanBalance = calculateRemainingBalance(loanAmount, interestRate, loanTermYears, year);
-    const equity = propertyValue - loanBalance;
-    const totalPaid = monthlyRepayment * 12 * year;
+  let remainingPrincipal = Math.max(0, loanAmount - offsetBalance);
+  let totalInterest = 0;
+  
+  for (const period of rates) {
+    const monthlyRate = period.rate / 100 / 12;
+    const months = period.years * 12;
     
-    projections.push({
-      year,
-      propertyValue: Math.round(propertyValue),
-      loanBalance: Math.round(loanBalance),
-      equity: Math.round(equity),
-      totalPaid: Math.round(totalPaid),
-    });
+    for (let month = 0; month < months; month++) {
+      const interestPayment = remainingPrincipal * monthlyRate;
+      totalInterest += interestPayment;
+      
+      // Calculate monthly payment for this rate
+      const numPayments = loanTermYears * 12;
+      const factor = Math.pow(1 + monthlyRate, numPayments);
+      const monthlyPayment = remainingPrincipal * (monthlyRate * factor) / (factor - 1);
+      
+      const principalPayment = monthlyPayment - interestPayment;
+      remainingPrincipal -= principalPayment;
+      
+      if (remainingPrincipal <= 0) break;
+    }
+    
+    if (remainingPrincipal <= 0) break;
   }
   
-  return projections;
+  return totalInterest;
 }
-

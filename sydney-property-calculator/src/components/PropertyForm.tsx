@@ -1,8 +1,7 @@
-import { Home, Wallet, PiggyBank, Percent, Clock, TrendingUp } from 'lucide-react';
+import { Home, Wallet, PiggyBank, DollarSign, Percent, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { usePropertyStore } from '@/hooks/usePropertyStore';
 import { formatCurrency, parseCurrency } from '@/lib/formatters/currency';
@@ -10,24 +9,22 @@ import { formatCurrency, parseCurrency } from '@/lib/formatters/currency';
 export function PropertyForm() {
   const {
     propertyPrice,
-    totalSavings,
+    availableFunds,
     offsetAmount,
-    depositPercent,
+    depositAmount,
     interestRate,
     loanTermYears,
     isFirstHomeBuyer,
-    appreciationRate,
+    householdIncome,
     setPropertyPrice,
-    setTotalSavings,
+    setAvailableFunds,
     setOffsetAmount,
-    setDepositPercent,
+    setDepositAmount,
     setInterestRate,
     setLoanTermYears,
     setIsFirstHomeBuyer,
-    setAppreciationRate,
+    setHouseholdIncome,
   } = usePropertyStore();
-
-  const depositAmount = propertyPrice * (depositPercent / 100);
 
   return (
     <Card className="border-slate-200/60 shadow-lg">
@@ -37,7 +34,7 @@ export function PropertyForm() {
           Property & Financial Details
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6 pt-6">
+      <CardContent className="space-y-5 pt-6">
         {/* Property Price */}
         <div className="space-y-2">
           <Label htmlFor="property-price" className="flex items-center gap-2">
@@ -53,19 +50,20 @@ export function PropertyForm() {
           />
         </div>
 
-        {/* Total Savings */}
+        {/* Available Funds */}
         <div className="space-y-2">
-          <Label htmlFor="total-savings" className="flex items-center gap-2">
+          <Label htmlFor="available-funds" className="flex items-center gap-2">
             <Wallet className="w-4 h-4 text-slate-500" />
-            Total Savings
+            Available Funds
           </Label>
           <Input
-            id="total-savings"
+            id="available-funds"
             type="text"
-            value={formatCurrency(totalSavings)}
-            onChange={(e) => setTotalSavings(parseCurrency(e.target.value))}
+            value={formatCurrency(availableFunds)}
+            onChange={(e) => setAvailableFunds(parseCurrency(e.target.value))}
             className="text-lg font-semibold"
           />
+          <p className="text-xs text-slate-500">Total funds available for purchase</p>
         </div>
 
         {/* Offset Account */}
@@ -78,100 +76,79 @@ export function PropertyForm() {
             id="offset-amount"
             type="text"
             value={formatCurrency(offsetAmount)}
-            onChange={(e) => setOffsetAmount(Math.min(parseCurrency(e.target.value), totalSavings))}
+            onChange={(e) => setOffsetAmount(parseCurrency(e.target.value))}
             className="text-lg font-semibold"
           />
           <p className="text-xs text-slate-500">Amount to keep in offset account (reduces interest)</p>
         </div>
 
-        {/* Deposit Percentage */}
-        <div className="space-y-3">
-          <Label className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Percent className="w-4 h-4 text-slate-500" />
-              Deposit
-            </span>
-            <span className="font-semibold text-blue-600">
-              {depositPercent}% ({formatCurrency(depositAmount)})
-            </span>
+        {/* Manual Deposit Override */}
+        <div className="space-y-2">
+          <Label htmlFor="deposit-amount" className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-slate-500" />
+            Deposit Override (Optional)
           </Label>
-          <Slider
-            value={[depositPercent]}
-            onValueChange={([value]) => setDepositPercent(value)}
-            min={5}
-            max={50}
-            step={1}
+          <Input
+            id="deposit-amount"
+            type="text"
+            placeholder="Auto-calculated"
+            value={depositAmount > 0 ? formatCurrency(depositAmount) : ''}
+            onChange={(e) => setDepositAmount(parseCurrency(e.target.value))}
+            className="text-lg font-semibold"
           />
-          <div className="flex justify-between text-xs text-slate-500">
-            <span>5%</span>
-            <span>50%</span>
-          </div>
+          <p className="text-xs text-slate-500">Leave empty for auto-calculation (Available Funds - Buying Costs)</p>
         </div>
 
         {/* Interest Rate */}
-        <div className="space-y-3">
-          <Label className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-slate-500" />
-              Interest Rate
-            </span>
-            <span className="font-semibold text-blue-600">{interestRate.toFixed(2)}%</span>
+        <div className="space-y-2">
+          <Label htmlFor="interest-rate" className="flex items-center gap-2">
+            <Percent className="w-4 h-4 text-slate-500" />
+            Interest Rate (% p.a.)
           </Label>
-          <Slider
-            value={[interestRate]}
-            onValueChange={([value]) => setInterestRate(value)}
-            min={2}
-            max={12}
-            step={0.05}
+          <Input
+            id="interest-rate"
+            type="number"
+            step="0.01"
+            min="0"
+            max="20"
+            value={interestRate}
+            onChange={(e) => setInterestRate(parseFloat(e.target.value) || 0)}
+            className="text-lg font-semibold"
           />
-          <div className="flex justify-between text-xs text-slate-500">
-            <span>2%</span>
-            <span>12%</span>
-          </div>
+          <p className="text-xs text-slate-500">Current CBA rate: 5.34%</p>
         </div>
 
         {/* Loan Term */}
-        <div className="space-y-3">
-          <Label className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-slate-500" />
-              Loan Term
-            </span>
-            <span className="font-semibold text-blue-600">{loanTermYears} years</span>
+        <div className="space-y-2">
+          <Label htmlFor="loan-term" className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-slate-500" />
+            Loan Term (years)
           </Label>
-          <Slider
-            value={[loanTermYears]}
-            onValueChange={([value]) => setLoanTermYears(value)}
-            min={10}
-            max={30}
-            step={1}
+          <Input
+            id="loan-term"
+            type="number"
+            min="1"
+            max="30"
+            value={loanTermYears}
+            onChange={(e) => setLoanTermYears(parseInt(e.target.value) || 30)}
+            className="text-lg font-semibold"
           />
-          <div className="flex justify-between text-xs text-slate-500">
-            <span>10 years</span>
-            <span>30 years</span>
-          </div>
         </div>
 
-        {/* Appreciation Rate */}
-        <div className="space-y-3">
-          <Label className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-slate-500" />
-              Expected Appreciation
-            </span>
-            <span className="font-semibold text-emerald-600">{appreciationRate.toFixed(1)}% p.a.</span>
+        {/* Household Income */}
+        <div className="space-y-2">
+          <Label htmlFor="household-income" className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-slate-500" />
+            Monthly Household Income
           </Label>
-          <Slider
-            value={[appreciationRate]}
-            onValueChange={([value]) => setAppreciationRate(value)}
-            min={0}
-            max={15}
-            step={0.5}
+          <Input
+            id="household-income"
+            type="text"
+            value={formatCurrency(householdIncome)}
+            onChange={(e) => setHouseholdIncome(parseCurrency(e.target.value))}
+            className="text-lg font-semibold"
           />
-          <div className="flex justify-between text-xs text-slate-500">
-            <span>0%</span>
-            <span>15%</span>
-          </div>
+          <p className="text-xs text-slate-500">For repayment affordability calculation</p>
         </div>
 
         {/* First Home Buyer Toggle */}
@@ -194,4 +171,3 @@ export function PropertyForm() {
     </Card>
   );
 }
-

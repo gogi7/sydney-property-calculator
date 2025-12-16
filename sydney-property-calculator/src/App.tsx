@@ -6,15 +6,14 @@ import { MortgageCard } from '@/components/MortgageCard';
 import { StampDutyCard } from '@/components/StampDutyCard';
 import { BuyingCostsCard } from '@/components/BuyingCostsCard';
 import { StampDutyRecoveryCard } from '@/components/StampDutyRecoveryCard';
-import { InterestRateScenariosCard } from '@/components/InterestRateScenariosCard';
-import { WealthProjectionCard } from '@/components/WealthProjectionCard';
+import { FiveYearOutlookCard } from '@/components/FiveYearOutlookCard';
 import { SummaryExport } from '@/components/SummaryExport';
 import { usePropertyStore } from '@/hooks/usePropertyStore';
 import { useState } from 'react';
 
 function App() {
   const reset = usePropertyStore((state) => state.reset);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('repayments');
 
   return (
     <div className="min-h-screen pb-12">
@@ -55,29 +54,28 @@ function App() {
           {/* Right Column - Results */}
           <div className="lg:col-span-8">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-6">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="scenarios">Rate Scenarios</TabsTrigger>
-                <TabsTrigger value="projections">Projections</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-4 mb-6">
+                <TabsTrigger value="repayments">Repayments</TabsTrigger>
+                <TabsTrigger value="costs">Buying Costs</TabsTrigger>
+                <TabsTrigger value="recovery">Stamp Duty</TabsTrigger>
+                <TabsTrigger value="outlook">5-Year Outlook</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="overview" className="space-y-6 animate-fade-in">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <MortgageCard />
-                  <StampDutyCard />
-                </div>
+              <TabsContent value="repayments" className="space-y-6 animate-fade-in">
+                <MortgageCard />
+              </TabsContent>
+
+              <TabsContent value="costs" className="space-y-6 animate-fade-in">
                 <BuyingCostsCard />
+                <StampDutyCard />
               </TabsContent>
 
-              <TabsContent value="scenarios" className="space-y-6 animate-fade-in">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <InterestRateScenariosCard />
-                  <StampDutyRecoveryCard />
-                </div>
+              <TabsContent value="recovery" className="space-y-6 animate-fade-in">
+                <StampDutyRecoveryCard />
               </TabsContent>
 
-              <TabsContent value="projections" className="space-y-6 animate-fade-in">
-                <WealthProjectionCard />
+              <TabsContent value="outlook" className="space-y-6 animate-fade-in">
+                <FiveYearOutlookCard />
               </TabsContent>
             </Tabs>
           </div>

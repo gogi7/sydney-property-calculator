@@ -2,6 +2,7 @@ import type { MortgageResults } from '@/types';
 
 /**
  * Calculate monthly P&I mortgage repayment
+ * Handles negative loans (when you have excess funds)
  */
 export function calculateMonthlyRepayment(
   principal: number,
@@ -9,9 +10,14 @@ export function calculateMonthlyRepayment(
   years: number,
   offsetBalance: number = 0
 ): number {
-  if (principal <= 0 || years <= 0) return 0;
+  // If loan is negative or zero, no repayments
+  if (principal <= 0) return 0;
   
   const effectivePrincipal = Math.max(0, principal - offsetBalance);
+  
+  // If offset covers entire loan
+  if (effectivePrincipal <= 0) return 0;
+  
   const monthlyRate = annualRate / 100 / 12;
   const numPayments = years * 12;
   
@@ -24,12 +30,40 @@ export function calculateMonthlyRepayment(
 }
 
 /**
- * Convert monthly payment to fortnightly (52 weeks / 26 fortnights)
- * Paying fortnightly = extra month per year in payments
+ * Convert monthly payment to weekly (52 weeks per year)
  */
-export function monthlyToFortnightly(monthlyPayment: number): number {
-  // Monthly * 12 / 26 fortnights per year
-  return (monthlyPayment * 12) / 26;
+export function monthlyToWeekly(monthlyPayment: number): number {
+  return (monthlyPayment * 12) / 52;
+}
+
+/**
+ * Calculate first year interest and principal
+ */
+export function calculateFirstYearBreakdown(
+  principal: number,
+  annualRate: number,
+  monthlyRepayment: number
+): { interest: number; principal: number } {
+  if (principal <= 0) return { interest: 0, principal: 0 };
+  
+  let remainingPrincipal = principal;
+  let totalInterest = 0;
+  const monthlyRate = annualRate / 100 / 12;
+  
+  for (let month = 0; month < 12; month++) {
+    const interestPayment = remainingPrincipal * monthlyRate;
+    const principalPayment = monthlyRepayment - interestPayment;
+    
+    totalInterest += interestPayment;
+    remainingPrincipal -= principalPayment;
+  }
+  
+  const totalPrincipal = (monthlyRepayment * 12) - totalInterest;
+  
+  return {
+    interest: totalInterest,
+    principal: totalPrincipal,
+  };
 }
 
 /**
@@ -40,6 +74,7 @@ export function calculateTotalInterest(
   monthlyRepayment: number,
   years: number
 ): number {
+  if (principal <= 0) return 0;
   const totalPayments = monthlyRepayment * years * 12;
   return Math.max(0, totalPayments - principal);
 }
@@ -59,57 +94,91 @@ export function calculateRemainingBalance(
   principal: number,
   annualRate: number,
   totalYears: number,
-  yearNumber: number
+  yearNumber: number,
+  offsetBalance: number = 0
 ): number {
+  if (principal <= 0) return principal; // Return negative balance as-is
   if (yearNumber >= totalYears) return 0;
   if (yearNumber <= 0) return principal;
+  
+  const effectivePrincipal = Math.max(0, principal - offsetBalance);
+  if (effectivePrincipal <= 0) return 0;
   
   const monthlyRate = annualRate / 100 / 12;
   const n = totalYears * 12;
   const p = yearNumber * 12; // payments made
   
   if (monthlyRate === 0) {
-    return principal * (1 - yearNumber / totalYears);
+    return effectivePrincipal * (1 - yearNumber / totalYears);
   }
   
   const factor = Math.pow(1 + monthlyRate, n);
   const paidFactor = Math.pow(1 + monthlyRate, p);
   
-  return principal * (factor - paidFactor) / (factor - 1);
+  return effectivePrincipal * (factor - paidFactor) / (factor - 1);
 }
 
 /**
- * Full mortgage calculation
+ * Full mortgage calculation with auto-calculated deposit
  */
 export function calculateMortgage(
   propertyPrice: number,
-  depositPercent: number,
+  availableFunds: number,
+  buyingCosts: number,
+  depositOverride: number,
   interestRate: number,
   loanTermYears: number,
-  offsetBalance: number = 0
+  offsetBalance: number,
+  householdIncome: number
 ): MortgageResults {
-  const depositAmount = propertyPrice * (depositPercent / 100);
-  const loanAmount = propertyPrice - depositAmount;
-  const lvr = calculateLVR(loanAmount, propertyPrice);
+  // Auto-calculate deposit: Available funds - Buying costs
+  const autoCalculatedDeposit = availableFunds - buyingCosts;
+  
+  // Use override if provided, otherwise use auto-calculated
+  const effectiveDeposit = depositOverride > 0 ? depositOverride : autoCalculatedDeposit;
+  
+  // Loan amount can be negative!
+  const loanAmount = propertyPrice - effectiveDeposit;
+  
+  const depositPercent = (effectiveDeposit / propertyPrice) * 100;
+  const lvr = calculateLVR(Math.max(0, loanAmount), propertyPrice);
   
   const monthlyRepayment = calculateMonthlyRepayment(
-    loanAmount,
+    Math.max(0, loanAmount),
     interestRate,
     loanTermYears,
     offsetBalance
   );
   
-  const fortnightlyRepayment = monthlyToFortnightly(monthlyRepayment);
-  const totalInterest = calculateTotalInterest(loanAmount - offsetBalance, monthlyRepayment, loanTermYears);
+  const weeklyRepayment = monthlyToWeekly(monthlyRepayment);
+  const percentOfIncome = householdIncome > 0 ? (monthlyRepayment / householdIncome) * 100 : 0;
+  
+  const firstYear = calculateFirstYearBreakdown(
+    Math.max(0, loanAmount),
+    interestRate,
+    monthlyRepayment
+  );
+  
+  const totalInterest = calculateTotalInterest(
+    Math.max(0, loanAmount) - offsetBalance,
+    monthlyRepayment,
+    loanTermYears
+  );
+  
   const totalRepayments = monthlyRepayment * loanTermYears * 12;
   
   return {
     loanAmount,
+    autoCalculatedDeposit,
+    effectiveDeposit,
+    depositPercent,
     lvr,
     monthlyRepayment,
-    fortnightlyRepayment,
+    weeklyRepayment,
+    percentOfIncome,
     totalInterest,
     totalRepayments,
+    firstYearInterest: firstYear.interest,
+    firstYearPrincipal: firstYear.principal,
   };
 }
-

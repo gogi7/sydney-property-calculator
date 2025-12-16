@@ -12,36 +12,58 @@ export const NSW_STAMP_DUTY_TIERS = [
 export const FHB_FULL_EXEMPTION_THRESHOLD = 800000;
 export const FHB_PARTIAL_EXEMPTION_MAX = 1000000;
 
-// LMI Rate Tiers (approximate - varies by lender)
-export const LMI_TIERS = [
-  { maxLvr: 80, rate: 0 },
-  { maxLvr: 85, rate: 0.008 },
-  { maxLvr: 90, rate: 0.015 },
-  { maxLvr: 95, rate: 0.030 },
-  { maxLvr: 100, rate: 0.045 },
-];
-
-// Buying Costs Estimates
+// Buying Costs
 export const BUYING_COSTS = {
   conveyancing: 2000,
-  buildingInspection: 500,
-  pestInspection: 300,
-  loanApplicationFee: 500,
-  titleRegistration: 150,
+  buildingInspection: 600,
+  loanEstablishmentFee: 600,
 };
 
 // Default Values
 export const DEFAULT_VALUES = {
-  propertyPrice: 1200000,
-  totalSavings: 300000,
-  offsetAmount: 50000,
-  depositPercent: 20,
-  interestRate: 6.5,
+  propertyPrice: 800000,
+  availableFunds: 1170000,
+  offsetAmount: 60000,
+  depositAmount: 0, // 0 means auto-calculate
+  interestRate: 5.34, // CBA current rate
   loanTermYears: 30,
   isFirstHomeBuyer: false,
-  appreciationRate: 5,
+  householdIncome: 14500, // Monthly
 };
 
-// Rate Scenarios to Model
-export const RATE_SCENARIOS = [-1.0, -0.5, 0, 0.5, 1.0, 2.0];
+// Interest Rate Scenarios for 5-year projections
+export const INTEREST_RATE_SCENARIOS = [
+  {
+    id: 'unchanged',
+    name: 'Unchanged (5.34%)',
+    description: 'Rate stays at current 5.34% for entire 5 years',
+    rate: 5.34,
+  },
+  {
+    id: 'cut_35',
+    name: 'Cut to 3.5%',
+    description: 'Rate drops to 3.5% and remains there for 5 years',
+    rate: 3.5,
+  },
+  {
+    id: 'cut_bounce',
+    name: 'Cut to 3%, then bounce to 5%',
+    description: 'Rate at 3% for 2 years, then bounces to 5% for remaining 3 years',
+    rate: 3.0, // Simplified - actual calculation would need year-by-year
+  },
+  {
+    id: 'raise_7',
+    name: 'Raise to 7%',
+    description: 'Rate increases to 7% and stays there for 5 years',
+    rate: 7.0,
+  },
+];
 
+// Property Growth Scenarios
+export const GROWTH_SCENARIOS = [
+  { rate: 0.07, label: '+7% Annual Growth' },
+  { rate: 0.05, label: '+5% Annual Growth' },
+  { rate: 0.01, label: '+1% Annual Growth' },
+  { rate: -0.02, label: '-2% Annual Growth' },
+  { rate: -0.05, label: '-5% Annual Growth' },
+];

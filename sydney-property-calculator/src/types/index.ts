@@ -1,21 +1,27 @@
 export interface PropertyInputs {
   propertyPrice: number;
-  totalSavings: number;
+  availableFunds: number;
   offsetAmount: number;
-  depositPercent: number;
+  depositAmount: number; // Manual override, otherwise auto-calculated
   interestRate: number;
   loanTermYears: number;
   isFirstHomeBuyer: boolean;
-  appreciationRate: number;
+  householdIncome: number; // Monthly household income
 }
 
 export interface MortgageResults {
-  loanAmount: number;
+  loanAmount: number; // Can be negative if overfunded
+  autoCalculatedDeposit: number;
+  effectiveDeposit: number;
+  depositPercent: number;
   lvr: number;
   monthlyRepayment: number;
-  fortnightlyRepayment: number;
+  weeklyRepayment: number;
+  percentOfIncome: number;
   totalInterest: number;
   totalRepayments: number;
+  firstYearInterest: number;
+  firstYearPrincipal: number;
 }
 
 export interface StampDutyResults {
@@ -25,23 +31,15 @@ export interface StampDutyResults {
   isFHBExempt: boolean;
 }
 
-export interface LMIResults {
-  lmiRequired: boolean;
-  lmiAmount: number;
-  lmiPercentage: number;
-}
-
 export interface BuyingCosts {
   stampDuty: number;
-  lmi: number;
   conveyancing: number;
   buildingInspection: number;
-  pestInspection: number;
-  loanApplicationFee: number;
-  titleRegistration: number;
+  loanEstablishmentFee: number;
   totalCosts: number;
-  totalFundsRequired: number;
-  remainingAfterPurchase: number;
+  totalUpfrontRequired: number;
+  costsAsPercentOfPrice: number;
+  stampDutyRateEffective: number;
 }
 
 export interface StampDutyRecovery {
@@ -51,19 +49,25 @@ export interface StampDutyRecovery {
   newStampDutyAtRecovery: number;
 }
 
-export interface RateScenario {
+export interface InterestRateScenario {
+  id: string;
+  name: string;
+  description: string;
   rate: number;
-  rateChange: number;
-  monthlyRepayment: number;
-  monthlyDifference: number;
-  totalInterest: number;
 }
 
-export interface WealthProjection {
-  year: number;
+export interface FiveYearProjection {
   propertyValue: number;
-  loanBalance: number;
+  remainingLoan: number;
   equity: number;
-  totalPaid: number;
+  interestPaid: number;
+  totalInvested: number;
+  netWealthPosition: number;
+  returnPercentage: number;
 }
 
+export interface GrowthScenario {
+  growthRate: number;
+  label: string;
+  projection: FiveYearProjection;
+}
