@@ -1,4 +1,4 @@
-import { Home, Wallet, PiggyBank, DollarSign, Percent, Clock } from 'lucide-react';
+import { Home, Wallet, PiggyBank, DollarSign, Percent, Clock, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,7 @@ export function PropertyForm() {
     loanTermYears,
     isFirstHomeBuyer,
     householdIncome,
+    extraWeeklyPayment,
     setPropertyPrice,
     setAvailableFunds,
     setOffsetAmount,
@@ -24,6 +25,7 @@ export function PropertyForm() {
     setLoanTermYears,
     setIsFirstHomeBuyer,
     setHouseholdIncome,
+    setExtraWeeklyPayment,
   } = usePropertyStore();
 
   return (
@@ -149,6 +151,23 @@ export function PropertyForm() {
             className="text-lg font-semibold"
           />
           <p className="text-xs text-slate-500">For repayment affordability calculation</p>
+        </div>
+
+        {/* Extra Weekly Payment */}
+        <div className="space-y-2">
+          <Label htmlFor="extra-weekly" className="flex items-center gap-2">
+            <Zap className="w-4 h-4 text-emerald-500" />
+            Extra Weekly Repayment
+          </Label>
+          <Input
+            id="extra-weekly"
+            type="text"
+            placeholder="$0"
+            value={extraWeeklyPayment > 0 ? formatCurrency(extraWeeklyPayment) : ''}
+            onChange={(e) => setExtraWeeklyPayment(parseCurrency(e.target.value))}
+            className="text-lg font-semibold"
+          />
+          <p className="text-xs text-slate-500">Additional weekly amount on top of minimum repayment</p>
         </div>
 
         {/* First Home Buyer Toggle */}

@@ -29,6 +29,7 @@ export const DEFAULT_VALUES = {
   loanTermYears: 30,
   isFirstHomeBuyer: false,
   householdIncome: 14500, // Monthly
+  extraWeeklyPayment: 0,
 };
 
 // Interest Rate Scenarios for 5-year projections

@@ -1,20 +1,22 @@
+import { useMemo } from 'react';
 import { Calculator, Calendar, TrendingDown, AlertCircle, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { usePropertyStore } from '@/hooks/usePropertyStore';
-import { calculateNSWStampDuty, calculateMortgage, calculateBuyingCosts } from '@/lib/calculations';
+import { calculateNSWStampDuty, calculateMortgage, calculateBuyingCosts, calculateAmortisation } from '@/lib/calculations';
 import { formatCurrency } from '@/lib/formatters/currency';
 
 export function MortgageCard() {
-  const { 
-    propertyPrice, 
-    availableFunds, 
-    depositAmount, 
-    interestRate, 
-    loanTermYears, 
+  const {
+    propertyPrice,
+    availableFunds,
+    depositAmount,
+    interestRate,
+    loanTermYears,
     offsetAmount,
     householdIncome,
-    isFirstHomeBuyer 
+    isFirstHomeBuyer,
+    extraWeeklyPayment,
   } = usePropertyStore();
 
   const stampDuty = calculateNSWStampDuty(propertyPrice, isFirstHomeBuyer);
@@ -29,6 +31,14 @@ export function MortgageCard() {
     loanTermYears,
     offsetAmount,
     householdIncome
+  );
+
+  const amortisation = useMemo(
+    () => calculateAmortisation(
+      Math.max(0, mortgage.loanAmount), interestRate, loanTermYears,
+      offsetAmount, extraWeeklyPayment
+    ),
+    [mortgage.loanAmount, interestRate, loanTermYears, offsetAmount, extraWeeklyPayment]
   );
 
   const isNegativeLoan = mortgage.loanAmount < 0;
@@ -127,6 +137,59 @@ export function MortgageCard() {
                 Weekly household: {formatCurrency(weeklyHouseholdIncome)}
               </p>
             </div>
+
+            {/* Fortnightly Repayment */}
+            <div className="border border-slate-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-purple-600" />
+                  <span className="text-sm font-medium text-slate-700">Fortnightly Payment</span>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-purple-600">
+                    {formatCurrency(amortisation.fortnightlyPayment, true)}
+                  </p>
+                </div>
+              </div>
+              {extraWeeklyPayment > 0 && (
+                <p className="text-xs text-slate-500 mt-1">
+                  Includes {formatCurrency(extraWeeklyPayment * 2, true)} extra per fortnight
+                </p>
+              )}
+            </div>
+
+            {/* Savings & Payoff Info */}
+            {(amortisation.timeSaved > 0.1 || amortisation.interestSavedFromOffset + amortisation.interestSavedFromExtra > 0) && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-2">
+                <h4 className="font-semibold text-emerald-800">Savings from Offset & Extra Repayments</h4>
+                {amortisation.timeSaved > 0.1 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-600">Loan paid off in</span>
+                    <span className="font-semibold text-emerald-700">
+                      {amortisation.yearsToPayoff.toFixed(1)} years ({amortisation.timeSaved.toFixed(1)} years early)
+                    </span>
+                  </div>
+                )}
+                {amortisation.interestSavedFromOffset > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-600">Saved from offset</span>
+                    <span className="font-semibold text-emerald-600">{formatCurrency(amortisation.interestSavedFromOffset)}</span>
+                  </div>
+                )}
+                {amortisation.interestSavedFromExtra > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-600">Saved from extra repayments</span>
+                    <span className="font-semibold text-emerald-600">{formatCurrency(amortisation.interestSavedFromExtra)}</span>
+                  </div>
+                )}
+                <div className="border-t border-emerald-200 pt-2 flex justify-between text-sm">
+                  <span className="font-semibold text-emerald-800">Total interest saved</span>
+                  <span className="font-bold text-emerald-600">
+                    {formatCurrency(amortisation.interestSavedFromOffset + amortisation.interestSavedFromExtra)}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Annual Summary */}
             <div className="bg-amber-50 rounded-lg p-4 space-y-2">

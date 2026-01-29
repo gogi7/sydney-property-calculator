@@ -7,6 +7,47 @@ export interface PropertyInputs {
   loanTermYears: number;
   isFirstHomeBuyer: boolean;
   householdIncome: number; // Monthly household income
+  extraWeeklyPayment: number; // Extra weekly repayment on top of minimum
+}
+
+export interface AmortisationWeek {
+  week: number;
+  year: number;
+  payment: number;
+  principal: number;
+  interest: number;
+  balance: number;
+  totalInterest: number;
+  totalPrincipal: number;
+}
+
+export interface AmortisationYear {
+  year: number;
+  principal: number;
+  interest: number;
+  balance: number;
+  totalInterest: number;
+  totalPrincipal: number;
+}
+
+export interface AmortisationResults {
+  weeklySchedule: AmortisationWeek[];
+  yearlySchedule: AmortisationYear[];
+  baseWeeklyPayment: number;
+  totalWeeklyPayment: number;
+  fortnightlyPayment: number;
+  monthlyPayment: number;
+  totalPayments: number;
+  totalInterest: number;
+  totalPrincipal: number;
+  effectivePrincipal: number;
+  yearsToPayoff: number;
+  weeksToPayoff: number;
+  timeSaved: number;
+  interestSavedFromExtra: number;
+  interestSavedFromOffset: number;
+  totalInterestNoOffset: number;
+  totalInterestNoExtra: number;
 }
 
 export interface MortgageResults {

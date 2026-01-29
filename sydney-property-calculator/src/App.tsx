@@ -8,6 +8,9 @@ import { StampDutyCard } from '@/components/StampDutyCard';
 import { BuyingCostsCard } from '@/components/BuyingCostsCard';
 import { StampDutyRecoveryCard } from '@/components/StampDutyRecoveryCard';
 import { FiveYearOutlookCard } from '@/components/FiveYearOutlookCard';
+import { LoanSummaryCard } from '@/components/LoanSummaryCard';
+import { LoanChartsCard } from '@/components/LoanChartsCard';
+import { AmortisationCard } from '@/components/AmortisationCard';
 import { SummaryExport } from '@/components/SummaryExport';
 import { usePropertyStore } from '@/hooks/usePropertyStore';
 import { useTheme } from '@/hooks/useTheme';
@@ -79,8 +82,11 @@ function App() {
           <div className="lg:col-span-8 space-y-6">
             <FundsBreakdownCard />
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-6">
+              <TabsList className="flex flex-wrap w-full gap-1 mb-6">
                 <TabsTrigger value="repayments">Repayments</TabsTrigger>
+                <TabsTrigger value="summary">Summary</TabsTrigger>
+                <TabsTrigger value="charts">Charts</TabsTrigger>
+                <TabsTrigger value="amortisation">Amortisation</TabsTrigger>
                 <TabsTrigger value="costs">Buying Costs</TabsTrigger>
                 <TabsTrigger value="recovery">Stamp Duty</TabsTrigger>
                 <TabsTrigger value="outlook">5-Year Outlook</TabsTrigger>
@@ -88,6 +94,18 @@ function App() {
 
               <TabsContent value="repayments" className="space-y-6 animate-fade-in">
                 <MortgageCard />
+              </TabsContent>
+
+              <TabsContent value="summary" className="space-y-6 animate-fade-in">
+                <LoanSummaryCard />
+              </TabsContent>
+
+              <TabsContent value="charts" className="space-y-6 animate-fade-in">
+                <LoanChartsCard />
+              </TabsContent>
+
+              <TabsContent value="amortisation" className="space-y-6 animate-fade-in">
+                <AmortisationCard />
               </TabsContent>
 
               <TabsContent value="costs" className="space-y-6 animate-fade-in">
