@@ -11,12 +11,13 @@ interface PropertyStore extends PropertyInputs {
   setLoanTermYears: (years: number) => void;
   setIsFirstHomeBuyer: (isFHB: boolean) => void;
   setHouseholdIncome: (income: number) => void;
+  setExtraWeeklyPayment: (extra: number) => void;
   reset: () => void;
 }
 
 export const usePropertyStore = create<PropertyStore>((set) => ({
   ...DEFAULT_VALUES,
-  
+
   setPropertyPrice: (propertyPrice) => set({ propertyPrice }),
   setAvailableFunds: (availableFunds) => set({ availableFunds }),
   setOffsetAmount: (offsetAmount) => set({ offsetAmount }),
@@ -25,6 +26,7 @@ export const usePropertyStore = create<PropertyStore>((set) => ({
   setLoanTermYears: (loanTermYears) => set({ loanTermYears }),
   setIsFirstHomeBuyer: (isFirstHomeBuyer) => set({ isFirstHomeBuyer }),
   setHouseholdIncome: (householdIncome) => set({ householdIncome }),
-  
+  setExtraWeeklyPayment: (extraWeeklyPayment) => set({ extraWeeklyPayment }),
+
   reset: () => set(DEFAULT_VALUES),
 }));
