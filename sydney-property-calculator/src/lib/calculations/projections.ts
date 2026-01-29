@@ -41,6 +41,49 @@ export function calculateStampDutyRecovery(
 }
 
 /**
+ * Calculate how long to recover stamp duty "doubled" — i.e. recover enough
+ * appreciation to cover the original stamp duty AND the stamp duty you'd pay
+ * on a new purchase at a given price (defaults to same price = true doubling).
+ */
+export function calculateStampDutyDoubleRecovery(
+  propertyPrice: number,
+  originalStampDuty: number,
+  newHousePrice: number,
+  annualAppreciationRate: number
+): StampDutyRecovery {
+  const newHouseStampDuty = calculateBaseStampDuty(newHousePrice);
+  const totalToRecover = originalStampDuty + newHouseStampDuty;
+
+  if (totalToRecover <= 0 || annualAppreciationRate <= 0) {
+    return {
+      monthsToRecover: 0,
+      yearsToRecover: 0,
+      propertyValueAtRecovery: propertyPrice,
+      newStampDutyAtRecovery: newHouseStampDuty,
+    };
+  }
+
+  const monthlyRate = annualAppreciationRate / 100 / 12;
+  let currentValue = propertyPrice;
+  let months = 0;
+  const maxMonths = 600; // 50 years max
+
+  while (currentValue - propertyPrice < totalToRecover && months < maxMonths) {
+    currentValue *= (1 + monthlyRate);
+    months++;
+  }
+
+  const propertyValueAtRecovery = Math.round(currentValue);
+
+  return {
+    monthsToRecover: months,
+    yearsToRecover: Math.round(months / 12 * 10) / 10,
+    propertyValueAtRecovery,
+    newStampDutyAtRecovery: Math.round(newHouseStampDuty),
+  };
+}
+
+/**
  * Calculate 5-year wealth projection
  * Total Invested = Upfront costs (available funds) + All repayments made
  * Net Position = Equity - Total Invested
