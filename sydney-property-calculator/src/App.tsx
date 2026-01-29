@@ -2,6 +2,7 @@ import { Building2, RefreshCw, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PropertyForm } from '@/components/PropertyForm';
+import { FundsBreakdownCard } from '@/components/FundsBreakdownCard';
 import { MortgageCard } from '@/components/MortgageCard';
 import { StampDutyCard } from '@/components/StampDutyCard';
 import { BuyingCostsCard } from '@/components/BuyingCostsCard';
@@ -75,7 +76,8 @@ function App() {
           </div>
 
           {/* Right Column - Results */}
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-8 space-y-6">
+            <FundsBreakdownCard />
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-4 mb-6">
                 <TabsTrigger value="repayments">Repayments</TabsTrigger>
